@@ -1,0 +1,48 @@
+const int enableA = 10; // PWM pin for motor A speed control (ENA)
+const int in1 = 12;     // Motor driver input 1 for motor A
+const int in2 = 11;     // Motor driver input 2 for motor A
+const int switchForward = 13;  // Limit switch for forward direction
+const int switchBackward = A0; // Limit switch for backward direction
+
+bool isForward = true; // Variable to track motor direction
+bool isRunning = false; // Variable to track motor state
+
+void setup() {
+  pinMode(enableA, OUTPUT);
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  pinMode(switchForward, INPUT_PULLUP);
+  pinMode(switchBackward, INPUT_PULLUP);
+}
+
+void loop() {
+  if (!isRunning) {
+    if (isForward) {
+      // Moving forward until hitting the forward limit switch
+      digitalWrite(in1, HIGH);
+      digitalWrite(in2, LOW);
+      analogWrite(enableA, 150); // Adjust PWM value for motor speed
+      if (digitalRead(switchForward) == LOW) {
+        isRunning = true; // Set motor to running state
+        isForward = false; // Set the direction to reverse when the forward limit switch is pressed
+      }
+    } else {
+      // Moving backward until hitting the backward limit switch
+      digitalWrite(in1, LOW);
+      digitalWrite(in2, HIGH);
+      analogWrite(enableA, 150); // Adjust PWM value for motor speed
+      if (digitalRead(switchBackward) == LOW) {
+        isRunning = true; // Set motor to running state
+        isForward = true; // Set the direction to forward when the backward limit switch is pressed
+      }
+    }
+  } else {
+    // Stop the motor when neither limit switch is pressed
+    if (digitalRead(switchForward) == HIGH && digitalRead(switchBackward) == HIGH) {
+      digitalWrite(in1, LOW);
+      digitalWrite(in2, LOW);
+      analogWrite(enableA, 0); // Set speed to 0
+      isRunning = false; // Set motor to stopped state
+    }
+  }
+}
